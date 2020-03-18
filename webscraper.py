@@ -11,7 +11,7 @@ driver = webdriver.Chrome(options=chrome_options)
 
 
 #ICU Occupancy Data
-##Victoria
+##Victorian Bedstate
 url = 'https://reach.vic.gov.au/#/vccaw/icu'
 driver.get(url)
 time.sleep(10) #needed for site generation time
@@ -52,5 +52,12 @@ with open('bedstate.json', 'w') as outfile:
 	json.dump(bedstate, outfile)
 
 
+##Victorian COVID-19
+url = 'https://reach.vic.gov.au/#/hird/home'
+driver.get(url)
+time.sleep(10) #needed for site generation time
+soup = BeautifulSoup(driver.page_source, features="html.parser").find(id="dashboardtable")
+hospitals = soup.find_all('tr', attrs={"data-row-name": "CampusBedNumbers"})
+
 #Housekeeping
-browser.quit()
+driver.quit()
