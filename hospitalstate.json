@@ -1,0 +1,14 @@
+{
+    "title": ["Western Private"],
+    "icu_emp": ["1"],
+    "icu_occ": ["1"],
+    "icu_aw_adm": ["1"],
+    "icu_aw_dc": ["0"],
+    "hdu_emp": ["0"],
+    "hdu_occ": ["0"],
+    "hdu_aw_adm": ["0"],
+    "hdu_aw_dc": ["0"],
+    "min_icu_eqv": [""],
+    "updated": ["30/04/2018 17:08"],
+    "ts": "2020-03-19 01:33:04.863460"
+}
