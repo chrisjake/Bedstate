@@ -5,6 +5,9 @@ import sql_functions #local set of instructions for updating PSQL DB
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import psycopg2
+import sqlconfig #psql settings file
+
 
 chrome_options = Options()
 chrome_options.add_argument("--headless") #comment out for debugging
@@ -16,7 +19,7 @@ dtg = datetime.utcnow()
 ##Victorian Bedstate
 url = 'https://reach.vic.gov.au/#/vccaw/icu'
 driver.get(url)
-time.sleep(10) #needed for site generation time
+time.sleep(15) #needed for site generation time
 soup = BeautifulSoup(driver.page_source, features="html.parser").find(id="dashboardtable")
 hospitals = soup.find_all('tr', attrs={"data-row-name": "CampusBedNumbers"})
 
@@ -50,40 +53,43 @@ def vic_static():
 
 ###Dynamic Values
 def vic_dynamic():
+	conn = None
+	try:
+		conn = psycopg2.connect(host=sqlconfig.host,database=sqlconfig.database, user=sqlconfig.username, password=sqlconfig.password)
+		cur=conn.cursor()
+		print('PostgreSQL database version:')
+		cur.execute('SELECT version()')
+		db_version = cur.fetchone()
+		print(db_version)
+		return conn
+	except (Exception, psycopg2.DatabaseError) as error:
+		print(error)
+	cur = conn.cursor()
 	for hospital in hospitals:
 		cells = hospital.find_all("td")
-		title = cells[0].find("span").get_text(),
-		icu_emp = cells[1].find("span").get_text(),
-		icu_occ = cells[2].find("span").get_text(),
-		icu_aw_adm = cells[3].find("span").get_text(),
-		icu_aw_dc = cells[4].find("span").get_text(),
-		hdu_emp = cells[5].find("span").get_text(),
-		hdu_occ = cells[6].find("span").get_text(),
-		hdu_aw_adm = cells[7].find("span").get_text(),
-		hdu_aw_dc = cells[8].find("span").get_text(),
-		min_icu_eqv = cells[9].find("span").get_text(),
-		updated = cells[10].find("span").get("data-tooltip"),
-		ts = str(dtg)
-#		hospital_state = [title, icu_emp, icu_occ, icu_aw_adm, icu_aw_dc, hdu_emp, hdu_occ, hdu_aw_adm, hdu_aw_dc, min_icu_eqv, updated, ts]
-
 		hospital_state = {
-			"title": title,
-			"icu_emp": icu_emp,
-			"icu_occ": icu_occ,
-			"icu_aw_adm": icu_aw_adm,
-			"icu_aw_dc": icu_aw_dc,
-			"hdu_emp": hdu_emp,
-			"hdu_occ": hdu_occ,
-			"hdu_aw_adm": hdu_aw_adm,
-			"hdu_aw_dc": hdu_aw_dc,
-			"min_icu_eqv": min_icu_eqv,
-			"updated": updated,
-			"ts": ts
+			"title": cells[0].find("span").get_text(),
+			"icu_emp": cells[1].find("span").get_text(),
+			"icu_occ": cells[2].find("span").get_text(),
+			"icu_aw_adm": cells[3].find("span").get_text(),
+			"icu_aw_dc": cells[4].find("span").get_text(),
+			"hdu_emp": cells[5].find("span").get_text(),
+			"hdu_occ": cells[6].find("span").get_text(),
+			"hdu_aw_adm": cells[7].find("span").get_text(),
+			"hdu_aw_dc": cells[8].find("span").get_text(),
+			"min_icu_eqv": cells[9].find("span").get_text(),
+			"updated": cells[10].find("span").get("data-tooltip"),
+			"ts": str(dtg)
 		}
-		with open('hospitalstate.json', 'w') as outfile:
+		print(hospital_state)
+		columns = hospital_state.keys() #
+		values = [hospital_state[column] for column in columns]
+		sql = "insert into bedstate (%s) values %s"
+		cur.execute(sql, (AsIs(','.join(columns)), tuple(values)))
+
+		with open('hospitalstate.json', 'w') as outfile: #debugging with json output
 			json.dump(hospital_state, outfile)
 		bedstate.append(hospital_state)
-
 
 	with open('bedstate.json', 'w') as outfile:
 		json.dump(bedstate, outfile)

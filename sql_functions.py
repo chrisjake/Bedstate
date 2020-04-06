@@ -1,5 +1,6 @@
 import sqlconfig #psql settings file
 import psycopg2 #psqldumping
+from psycopg2.extensions import AsIs
 
 def connect():
 	conn = None
@@ -15,7 +16,7 @@ def connect():
 		print(error)
 
 
-def disconnect(conn):
+def disconnect():
 	conn.close()
 	print('Database connection closed.')
 
@@ -66,10 +67,13 @@ def create_tables():
 	return conn
 
 
-def insert_values():
-	conn = connect()
-	sql = "INSERT INTO bedstate (title, icu_occ, icu_emp, icu_aw_adm, icu_aw_dc, hdu_occ, hdu_emp, hdu_aw_adm, hdu_aw_dc, min_icu_eqv, updated, ts) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-	data = 
+#def insert_values():
+#	conn = connect()
+#	columns = hospital_state.keys()
+#	values = [hospital_state[column] for column in columns]] 
+#
+#	sql = "insert into bedstate (%s) values %s"
+#	cursor.execute(sql, (AsIs(','.join(columns)), tuple(values)))
 	
 
 #	str(INSERT INTO bedstate (title, icu_occ, icu_emp, icu_aw_adm, icu_aw_dc, hdu_occ, hdu_emp, hdu_aw_adm, hdu_aw_dc, min_icu_eqv, updated, ts)
@@ -78,6 +82,7 @@ def insert_values():
 #	cur=con.cursor()#	disconnect(conn)
 
 
-create_tables()
-disconnect(conn)
+#create_tables()
+#disconnect()
 
+#connect()
